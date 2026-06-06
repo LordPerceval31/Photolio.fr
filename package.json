@@ -21,7 +21,7 @@
     "@emailjs/nodejs": "^5.0.2",
     "@prisma/adapter-pg": "^6.19.2",
     "@prisma/client": "^6.19.2",
-    "@upstash/qstash": "^2.10.1",
+    "@upstash/qstash": "^2.11.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "bcryptjs": "^2.4.3",
