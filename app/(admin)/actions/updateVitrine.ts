@@ -28,13 +28,23 @@ export async function updateVitrineTexts(data: VitrineData) {
   const userId = user.id;
 
   try {
-    await prisma.siteConfig.upsert({
-      where: { userId },
-      update: data,
-      create: { ...data, userId },
-    });
+    const [, userRecord] = await Promise.all([
+      prisma.siteConfig.upsert({
+        where: { userId },
+        update: data,
+        create: { ...data, userId },
+      }),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { subdomain: true },
+      }),
+    ]);
 
     revalidatePath("/dashboard/vitrine");
+    if (userRecord?.subdomain) {
+      // Invalide toutes les pages du portfolio public (layout + sous-pages)
+      revalidatePath(`/${userRecord.subdomain}`, "layout");
+    }
     return { success: true };
   } catch (error) {
     console.error(error);

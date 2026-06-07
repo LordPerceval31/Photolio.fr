@@ -19,18 +19,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     template: "%s — Photolio",
-    default: "Photolio — Le logiciel SaaS des photographes",
+    default: "Photolio — Créez votre portfolio photographe en ligne",
   },
   description:
-    "Créez votre site vitrine, envoyez des galeries privées à vos clients et développez votre activité de photographe avec Photolio. Développé à Toulouse.",
-  keywords: [
-    "logiciel photographe",
-    "galerie photo en ligne",
-    "portfolio personnalisé",
-    "site vitrine photographe",
-    "SaaS photographie",
-    "Toulouse",
-  ],
+    "Créez votre portfolio photographe en ligne, partagez des galeries privées avec vos clients et gérez votre site vitrine en totale autonomie. Essai gratuit.",
   authors: [
     { name: "Levynix Studio", url: "https://levynixstudio.netlify.app/" },
   ],
@@ -40,25 +32,18 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: "Photolio — L'outil des photographes",
-    description: "Votre site vitrine et vos galeries privées sur-mesure.",
+    title: "Photolio — Votre portfolio photographe en ligne",
+    description:
+      "Site vitrine, galeries privées et portfolio personnalisé pour photographes amateurs et professionnels.",
     url: "https://photolio.fr",
     siteName: "Photolio",
     locale: "fr_FR",
     type: "website",
-    images: [
-      {
-        url: "/www.photolio.fr_(laptop).webp",
-        width: 1200,
-        height: 630,
-        alt: "Aperçu de Photolio",
-      },
-    ],
   },
   metadataBase: new URL("https://photolio.fr"),
 
   alternates: {
-    canonical: "/", // Ça dit à Google : "La version officielle de la page que tu regardes, c'est celle-là"
+    canonical: "/",
   },
 };
 
