@@ -3,8 +3,19 @@
 import { useActionState, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { sendContactEmail, type ContactFormState } from "@/app/actions/contact";
 import MentionsLegalesModal from "./_components/MentionsLegalesModal";
+
+/* ── Transition par défaut pour tous les fondus ── */
+const FADE_UP = {
+  hidden: { opacity: 0, y: 22 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: "easeOut" },
+  },
+} as const;
 
 const GALLERY_PHOTOS = [
   {
@@ -90,6 +101,39 @@ const PRICING_PLANS = [
   },
 ];
 
+const FAQ_ITEMS = [
+  {
+    question: "C'est quoi Photolio ?",
+    answer:
+      "Photolio est une plateforme dédiée aux photographes amateurs et professionnels pour créer leur portfolio photo en ligne, gérer leurs galeries et partager leurs images avec leurs clients. Un paiement unique, un accès à vie.",
+  },
+  {
+    question: "Photolio est-il fait pour les photographes amateurs ?",
+    answer:
+      "Oui, Photolio est conçu pour tous les niveaux — des passionnés qui shootent le week-end aux professionnels confirmés (portrait, mariage, street, paysage, studio, événementiel…). Aucune compétence technique n'est requise.",
+  },
+  {
+    question: "Comment créer mon portfolio photographe avec Photolio ?",
+    answer:
+      "Vous choisissez votre offre et nous configurons votre architecture sous 24h. Vous n'avez plus qu'à importer vos photos, rédiger vos textes et personnaliser votre vitrine depuis votre espace de gestion — sans coder.",
+  },
+  {
+    question: "Puis-je envoyer mes photos à mes clients via Photolio ?",
+    answer:
+      "Oui, avec l'offre Premium. Vous créez une galerie privée et envoyez un lien unique à votre client. Il visualise et télécharge ses photos en un clic, sans avoir besoin de créer un compte.",
+  },
+  {
+    question: "Combien coûte Photolio ?",
+    answer:
+      "Photolio fonctionne avec un paiement unique, sans abonnement mensuel. Les offres démarrent à 69 € et vont jusqu'à 129 €. Accès à vie garanti.",
+  },
+  {
+    question: "Ai-je besoin d'un hébergement ou d'un nom de domaine ?",
+    answer:
+      "Non. L'hébergement et votre sous-domaine personnalisé (votreprenom.photolio.fr) sont inclus dans toutes les offres. Vous pouvez commencer à publier votre portfolio photographe dès le premier jour.",
+  },
+] as const;
+
 export default function LandingPage() {
   const [state, formAction, isPending] = useActionState<
     ContactFormState,
@@ -97,6 +141,17 @@ export default function LandingPage() {
   >(sendContactEmail, { success: false });
 
   const [mentionsOpen, setMentionsOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ_ITEMS.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  };
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -131,10 +186,22 @@ export default function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
 
-      <main id="main-content" className="bg-[#0a0a0a] text-[#ededed] min-h-screen overflow-x-hidden selection:bg-blue selection:text-white cursor-default">
+      <main
+        id="main-content"
+        className="bg-[#0a0a0a] text-[#ededed] min-h-screen overflow-x-hidden selection:bg-blue selection:text-white cursor-default"
+      >
         {/* ── HEADER ── */}
-        <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between w-[calc(100%-32px)] tablet:w-[70%] max-w-5xl desktop:max-w-7xl 2k:max-w-400 ultrawide:max-w-500 4k:max-w-600 px-4 py-3 2k:px-6 2k:py-4 4k:px-10 4k:py-8 glass-premium rounded-full transition-all duration-300">
+        <motion.header
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between w-[calc(100%-32px)] tablet:w-[70%] max-w-5xl desktop:max-w-7xl 2k:max-w-400 ultrawide:max-w-500 4k:max-w-600 px-4 py-3 2k:px-6 2k:py-4 4k:px-10 4k:py-8 glass-premium rounded-full transition-all duration-300"
+        >
           <span className="font-extrabold text-[15px] tablet:text-base laptop:text-lg desktop:text-xl 2k:text-2xl ultrawide:text-3xl 4k:text-4xl tracking-tight text-cream cursor-default">
             Photolio.fr
           </span>
@@ -144,7 +211,7 @@ export default function LandingPage() {
           >
             Espace Pro
           </Link>
-        </header>
+        </motion.header>
 
         {/* ── HERO ── */}
         <section className="relative min-h-svh flex flex-col justify-end pb-16 laptop:pb-24 desktop:pb-32 2k:pb-40 ultrawide:pb-52 4k:pb-72 px-4">
@@ -160,7 +227,12 @@ export default function LandingPage() {
             <div className="absolute inset-0 bg-linear-to-t from-background via-background/40 to-transparent" />
           </div>
 
-          <div className="relative z-10 w-full tablet:w-[85%] max-w-5xl desktop:max-w-7xl 2k:max-w-400 ultrawide:max-w-500 4k:max-w-600 mx-auto flex flex-col items-start text-left laptop:translate-y-6 laptop:-translate-x-20 desktop:translate-y-12 desktop:-translate-x-50 2k:translate-y-24 2k:-translate-x-70 ultrawide:translate-y-32 ultrawide:-translate-x-80 4k:translate-y-40 4k:-translate-x-96 transition-transform duration-500">
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
+            className="relative z-10 w-full tablet:w-[85%] max-w-5xl desktop:max-w-7xl 2k:max-w-400 ultrawide:max-w-500 4k:max-w-600 mx-auto flex flex-col items-start text-left laptop:translate-y-6 laptop:-translate-x-20 desktop:translate-y-12 desktop:-translate-x-50 2k:translate-y-24 2k:-translate-x-70 ultrawide:translate-y-32 ultrawide:-translate-x-80 4k:translate-y-40 4k:-translate-x-96 transition-transform duration-500"
+          >
             <h1 className="sr-only cursor-default">
               Création de sites vitrines et galeries privées clé en main pour
               photographes professionnels et amateurs
@@ -189,18 +261,30 @@ export default function LandingPage() {
             >
               Voir les offres
             </a>
-          </div>
+          </motion.div>
         </section>
 
-        {/* ── SECTION GALERIES (Focus sur l'atout Premium) ── */}
+        {/* ── SECTION GALERIES ── */}
         <section className="w-full tablet:w-[85%] max-w-5xl desktop:max-w-7xl 2k:max-w-400 ultrawide:max-w-500 4k:max-w-700 mx-auto px-4 py-20 tablet:py-24 laptop:py-32 desktop:py-40 2k:py-56 ultrawide:py-64 4k:py-80">
-          <div className="mb-10 tablet:mb-12 laptop:mb-16 desktop:mb-20 2k:mb-24 ultrawide:mb-32 4k:mb-40 text-center tablet:text-left">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={FADE_UP}
+            className="mb-10 tablet:mb-12 laptop:mb-16 desktop:mb-20 2k:mb-24 ultrawide:mb-32 4k:mb-40 text-center tablet:text-left"
+          >
             <h2 className="text-3xl tablet:text-5xl laptop:text-6xl desktop:text-7xl 2k:text-8xl ultrawide:text-[9rem] 4k:text-[11rem] font-extrabold tracking-tight text-cream mb-4 leading-tight cursor-default">
               Conçu pour l&apos;image.
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="glass-card rounded-3xl 2k:rounded-[40px] ultrawide:rounded-[60px] 4k:rounded-[80px] p-6 tablet:p-10 laptop:p-16 desktop:p-20 2k:p-24 ultrawide:p-32 4k:p-40 flex flex-col laptop:flex-row items-center gap-10 laptop:gap-20 2k:gap-28 ultrawide:gap-36 4k:gap-48">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={FADE_UP}
+            className="glass-card rounded-3xl 2k:rounded-[40px] ultrawide:rounded-[60px] 4k:rounded-[80px] p-6 tablet:p-10 laptop:p-16 desktop:p-20 2k:p-24 ultrawide:p-32 4k:p-40 flex flex-col laptop:flex-row items-center gap-10 laptop:gap-20 2k:gap-28 ultrawide:gap-36 4k:gap-48"
+          >
             <div className="w-full laptop:w-1/2">
               <span className="inline-block px-3 py-1 tablet:px-4 tablet:py-1.5 laptop:px-5 laptop:py-2 desktop:px-6 desktop:py-2.5 2k:px-8 2k:py-3 ultrawide:px-10 ultrawide:py-4 4k:px-12 4k:py-5 bg-blue/10 border border-blue/30 text-blue rounded-full text-[10px] tablet:text-xs laptop:text-sm desktop:text-base 2k:text-lg ultrawide:text-xl 4k:text-2xl font-bold tracking-widest uppercase mb-4 laptop:mb-6 desktop:mb-8 2k:mb-10 ultrawide:mb-12 4k:mb-16 cursor-default">
                 Inclus dans l&apos;offre Premium
@@ -223,56 +307,136 @@ export default function LandingPage() {
             </div>
 
             <div className="w-full laptop:w-1/2 relative min-h-75 tablet:min-h-87.5 laptop:min-h-100 desktop:min-h-125 2k:min-h-150 ultrawide:min-h-200 4k:min-h-250 flex items-center justify-center">
-              <div className="absolute w-32 tablet:w-40 laptop:w-48 desktop:w-64 2k:w-80 ultrawide:w-96 4k:w-140 aspect-3/4 rounded-xl 2k:rounded-2xl 4k:rounded-3xl overflow-hidden -rotate-6 -translate-x-16 tablet:-translate-x-20 laptop:-translate-x-24 desktop:-translate-x-32 2k:-translate-x-40 ultrawide:-translate-x-48 4k:-translate-x-64 shadow-2xl border border-white/5 opacity-50">
-                <Image
-                  src={GALLERY_PHOTOS[4].src}
-                  fill
-                  sizes="500px"
-                  alt="Aperçu gauche"
-                  className="object-cover"
-                />
-              </div>
-              <div className="absolute w-32 tablet:w-40 laptop:w-48 desktop:w-64 2k:w-80 ultrawide:w-96 4k:w-140 aspect-3/4 rounded-xl 2k:rounded-2xl 4k:rounded-3xl overflow-hidden rotate-6 translate-x-16 tablet:translate-x-20 laptop:translate-x-24 desktop:translate-x-32 2k:translate-x-40 ultrawide:translate-x-48 4k:translate-x-64 shadow-2xl border border-white/5 opacity-50">
-                <Image
-                  src={GALLERY_PHOTOS[1].src}
-                  fill
-                  sizes="500px"
-                  alt="Aperçu droite"
-                  className="object-cover"
-                />
-              </div>
-              <div className="absolute w-40 tablet:w-48 laptop:w-56 desktop:w-72 2k:w-96 ultrawide:w-md 4k:w-180 aspect-3/4 rounded-xl 2k:rounded-2xl 4k:rounded-3xl overflow-hidden z-10 shadow-2xl border border-white/10 hover:scale-105 transition-transform duration-500">
-                <Image
-                  src={GALLERY_PHOTOS[2].src}
-                  fill
-                  sizes="800px"
-                  alt="Aperçu centre"
-                  className="object-cover"
-                />
-              </div>
+              <motion.div
+                initial={{ opacity: 0, rotate: -9, x: -64 }}
+                whileInView={{ opacity: 0.5, rotate: -6, x: -64 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}
+                className="absolute w-32 tablet:w-40 laptop:w-48 desktop:w-64 2k:w-80 ultrawide:w-96 4k:w-140 aspect-3/4 rounded-xl 2k:rounded-2xl 4k:rounded-3xl overflow-hidden shadow-2xl border border-white/5"
+              >
+                <Image src={GALLERY_PHOTOS[4].src} fill sizes="500px" alt="Aperçu gauche" className="object-cover" />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, rotate: 9, x: 64 }}
+                whileInView={{ opacity: 0.5, rotate: 6, x: 64 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
+                className="absolute w-32 tablet:w-40 laptop:w-48 desktop:w-64 2k:w-80 ultrawide:w-96 4k:w-140 aspect-3/4 rounded-xl 2k:rounded-2xl 4k:rounded-3xl overflow-hidden shadow-2xl border border-white/5"
+              >
+                <Image src={GALLERY_PHOTOS[1].src} fill sizes="500px" alt="Aperçu droite" className="object-cover" />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.9, delay: 0.35, ease: "easeOut" }}
+                className="absolute w-40 tablet:w-48 laptop:w-56 desktop:w-72 2k:w-96 ultrawide:w-md 4k:w-180 aspect-3/4 rounded-xl 2k:rounded-2xl 4k:rounded-3xl overflow-hidden z-10 shadow-2xl border border-white/10 hover:scale-105 transition-transform duration-500"
+              >
+                <Image src={GALLERY_PHOTOS[2].src} fill sizes="800px" alt="Aperçu centre" className="object-cover" />
+              </motion.div>
             </div>
+          </motion.div>
+        </section>
+
+        {/* ── SECTION FAQ ── */}
+        <section className="w-full tablet:w-[85%] max-w-5xl desktop:max-w-7xl 2k:max-w-400 ultrawide:max-w-500 4k:max-w-700 mx-auto px-4 py-10 tablet:py-16 laptop:py-20 desktop:py-32 2k:py-40 ultrawide:py-56 4k:py-72">
+          <motion.div
+            className="mb-10 tablet:mb-12 laptop:mb-16 desktop:mb-20"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={FADE_UP}
+          >
+            <h2 className="text-3xl tablet:text-5xl laptop:text-6xl desktop:text-7xl 2k:text-8xl ultrawide:text-[9rem] 4k:text-[11rem] font-extrabold tracking-tight text-cream leading-tight cursor-default">
+              Questions fréquentes.
+            </h2>
+          </motion.div>
+
+          <div className="flex flex-col gap-3 desktop:gap-4">
+            {FAQ_ITEMS.map((item, i) => (
+              <motion.div
+                key={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-40px" }}
+                variants={{
+                  hidden: { opacity: 0, y: 16 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.6, delay: i * 0.06, ease: "easeOut" },
+                  },
+                }}
+                className="glass-card rounded-2xl overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between px-6 tablet:px-8 laptop:px-10 py-5 tablet:py-6 text-left cursor-pointer gap-4"
+                >
+                  <span className="text-base tablet:text-lg laptop:text-xl desktop:text-2xl font-semibold text-cream cursor-default">
+                    {item.question}
+                  </span>
+                  <motion.span
+                    animate={{ rotate: openFaq === i ? 45 : 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-blue shrink-0"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </motion.span>
+                </button>
+
+                {openFaq === i && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <div className="px-6 tablet:px-8 laptop:px-10 pb-6 tablet:pb-7">
+                      <p className="text-sm tablet:text-base laptop:text-lg text-cream/60 leading-relaxed cursor-default">
+                        {item.answer}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        {/* ── SECTION TARIFS (4 Colonnes) ── */}
+        {/* ── SECTION TARIFS ── */}
         <section
           id="tarifs"
           className="w-full tablet:w-[85%] max-w-5xl desktop:max-w-7xl 2k:max-w-400 ultrawide:max-w-500 4k:max-w-700 mx-auto px-4 py-10 tablet:py-16 laptop:py-20 desktop:py-32 2k:py-40 ultrawide:py-56 4k:py-72"
         >
-          <div className="mb-10 tablet:mb-12 laptop:mb-16 desktop:mb-20 2k:mb-24 ultrawide:mb-32 4k:mb-40 text-center tablet:text-left">
-            <h2 className="text-3xl tablet:text-5xl laptop:text-6xl desktop:text-7xl 2k:text-8xl ultrawide:text-[9rem] 4k:text-[11rem] font-extrabold tracking-tight text-cream mb-4 desktop:mb-6 2k:mb-8 ultrawide:mb-10 4k:mb-16 cursor-default">
+          <motion.div
+            className="mb-10 tablet:mb-12 laptop:mb-16 desktop:mb-20 text-center tablet:text-left"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={FADE_UP}
+          >
+            <h2 className="text-3xl tablet:text-5xl laptop:text-6xl desktop:text-7xl 2k:text-8xl ultrawide:text-[9rem] 4k:text-[11rem] font-extrabold tracking-tight text-cream mb-4 desktop:mb-6 cursor-default">
               Des offres qui s&apos;adaptent à vous.
             </h2>
-            <p className="text-sm tablet:text-base laptop:text-lg desktop:text-xl 2k:text-2xl ultrawide:text-3xl 4k:text-4xl text-cream/60 max-w-2xl desktop:max-w-3xl 2k:max-w-4xl ultrawide:max-w-5xl 4k:max-w-7xl cursor-default mx-auto tablet:mx-0">
+            <p className="text-sm tablet:text-base laptop:text-lg desktop:text-xl 2k:text-2xl ultrawide:text-3xl 4k:text-4xl text-cream/60 max-w-2xl cursor-default mx-auto tablet:mx-0">
               Paiement unique. Accès à vie. Choisissez l&apos;architecture qui
               correspond au stade de votre activité.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 tablet:grid-cols-2 laptop:grid-cols-4 gap-2 desktop:gap-3 2k:gap-4 ultrawide:gap-6 4k:gap-6">
-            {PRICING_PLANS.map((plan) => (
-              <div
+            {PRICING_PLANS.map((plan, i) => (
+              <motion.div
                 key={plan.name}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.65, delay: i * 0.08, ease: "easeOut" }}
                 className={`relative flex flex-col p-6 tablet:p-8 laptop:p-6 desktop:p-10 2k:p-14 ultrawide:p-20 4k:p-24 rounded-3xl 2k:rounded-[40px] 4k:rounded-[60px] transition-all duration-300 ${
                   plan.highlight
                     ? "bg-blue/10 border-2 border-blue shadow-[0_0_30px_rgba(0,102,255,0.15)]"
@@ -297,10 +461,7 @@ export default function LandingPage() {
                       </span>
                     )}
                   </div>
-                  <div
-                    aria-label={`${plan.price} euros`}
-                    className="flex items-baseline gap-1 2k:gap-2 4k:gap-4"
-                  >
+                  <div aria-label={`${plan.price} euros`} className="flex items-baseline gap-1 2k:gap-2 4k:gap-4">
                     <span aria-hidden="true" className="text-5xl tablet:text-6xl laptop:text-5xl desktop:text-7xl 2k:text-8xl ultrawide:text-[7rem] 4k:text-[10rem] font-extrabold tracking-tight text-cream cursor-default">
                       {plan.price}
                     </span>
@@ -311,14 +472,9 @@ export default function LandingPage() {
                 </div>
 
                 <ul className="flex-1 space-y-4 desktop:space-y-6 2k:space-y-8 ultrawide:space-y-10 4k:space-y-12 mb-8 desktop:mb-10 2k:mb-14 ultrawide:mb-16 4k:mb-24">
-                  {plan.features.map((feature, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-3 desktop:gap-4 2k:gap-5 4k:gap-6 text-sm tablet:text-base laptop:text-sm desktop:text-lg 2k:text-xl ultrawide:text-2xl 4k:text-3xl text-cream/80 cursor-default"
-                    >
-                      <span className="text-blue font-bold shrink-0 mt-0.5 2k:mt-1 4k:mt-2 cursor-default">
-                        ✓
-                      </span>
+                  {plan.features.map((feature, fi) => (
+                    <li key={fi} className="flex items-start gap-3 desktop:gap-4 2k:gap-5 4k:gap-6 text-sm tablet:text-base laptop:text-sm desktop:text-lg 2k:text-xl ultrawide:text-2xl 4k:text-3xl text-cream/80 cursor-default">
+                      <span className="text-blue font-bold shrink-0 mt-0.5 2k:mt-1 4k:mt-2 cursor-default">✓</span>
                       <span className="cursor-default">{feature}</span>
                     </li>
                   ))}
@@ -336,14 +492,18 @@ export default function LandingPage() {
                 >
                   Voir la démo ↗
                 </a>
-              </div>
+              </motion.div>
             ))}
           </div>
         </section>
 
         {/* ── CONTACT ── */}
-        <section
+        <motion.section
           id="contact"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={FADE_UP}
           className="w-full tablet:w-[85%] max-w-5xl desktop:max-w-7xl 2k:max-w-400 ultrawide:max-w-500 4k:max-w-700 mx-auto px-4 py-24 tablet:py-32 laptop:py-40 desktop:py-48 2k:py-64 ultrawide:py-80 4k:py-96"
         >
           <div className="text-center laptop:text-left mb-10 tablet:mb-16 laptop:mb-20 desktop:mb-24 2k:mb-32 4k:mb-48">
@@ -416,25 +576,23 @@ export default function LandingPage() {
 
             <div aria-live="polite" aria-atomic="true">
               {state.error && (
-                <p className="text-red-400 text-sm tablet:text-base desktop:text-lg 2k:text-xl ultrawide:text-2xl 4k:text-3xl text-center cursor-default">
+                <p className="text-red-400 text-sm tablet:text-base desktop:text-lg text-center cursor-default">
                   {state.error}
                 </p>
               )}
               {state.success && (
-                <p className="text-green-400 text-sm tablet:text-base desktop:text-lg 2k:text-xl ultrawide:text-2xl 4k:text-3xl text-center font-bold cursor-default">
+                <p className="text-green-400 text-sm tablet:text-base desktop:text-lg text-center font-bold cursor-default">
                   Demande envoyée ! Je vous recontacte très vite.
                 </p>
               )}
             </div>
           </form>
-        </section>
+        </motion.section>
 
         {/* ── FOOTER ── */}
         <footer className="w-full border-t border-cream/10 px-8 tablet:px-12 laptop:px-16 desktop:px-20 2k:px-24 ultrawide:px-32 4k:px-40 py-8 tablet:py-10 desktop:py-12 2k:py-16 4k:py-24 flex flex-col tablet:flex-row items-center justify-around gap-4 2k:gap-8 4k:gap-12 text-xs tablet:text-sm laptop:text-base desktop:text-lg 2k:text-xl ultrawide:text-2xl 4k:text-3xl text-cream/40">
           <div className="flex items-center gap-2 2k:gap-3 4k:gap-4">
-            <span className="font-bold text-cream/80 cursor-default">
-              Photolio.fr
-            </span>
+            <span className="font-bold text-cream/80 cursor-default">Photolio.fr</span>
             <span className="cursor-default">© 2026</span>
           </div>
           <button

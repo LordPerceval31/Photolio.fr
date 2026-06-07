@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direction visuelle — Photolio</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #f5f5f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 32px 24px 64px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    color: rgba(245,245,240,0.45);
+    font-size: 15px;
+    margin-bottom: 40px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .card:hover { border-color: rgba(85,139,139,0.5); transform: translateY(-2px); }
+  .card.selected { border-color: #558b8b; background: rgba(85,139,139,0.08); }
+  .card.selected .check { opacity: 1; }
+
+  .check {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 24px; height: 24px;
+    background: #558b8b;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+
+  /* ── Preview zone ── */
+  .preview {
+    height: 220px;
+    position: relative;
+    overflow: hidden;
+    background: #0d0d0d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-body {
+    padding: 20px 22px 24px;
+  }
+  .card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #558b8b;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: rgba(245,245,240,0.5);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.06);
+    color: rgba(245,245,240,0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .tag.accent { background: rgba(85,139,139,0.12); color: #558b8b; border-color: rgba(85,139,139,0.2); }
+
+  /* ────────────────────────────
+     OPTION A — Parallax + Particles
+  ──────────────────────────── */
+  .preview-a {
+    background: linear-gradient(160deg, #080808 0%, #101518 100%);
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(85,139,139,0.6);
+    animation: float linear infinite;
+  }
+  @keyframes float {
+    0% { transform: translateY(0) scale(1); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-240px) scale(0.5); opacity: 0; }
+  }
+  .hero-text-a {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+  }
+  .hero-text-a .big {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1;
+    animation: fadeUp 2s ease forwards;
+  }
+  .hero-text-a .sub {
+    font-size: 13px;
+    color: rgba(245,245,240,0.4);
+    margin-top: 8px;
+    animation: fadeUp 2s ease 0.3s both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .scroll-line {
+    position: absolute;
+    bottom: 0; left: 50%;
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, rgba(85,139,139,0.8), transparent);
+    animation: scanline 2s ease-in-out infinite;
+  }
+  @keyframes scanline {
+    0%, 100% { transform: translateX(-50%) scaleY(0); transform-origin: top; }
+    50% { transform: translateX(-50%) scaleY(1); transform-origin: top; }
+  }
+
+  /* ────────────────────────────
+     OPTION B — 3D Tilt + Depth
+  ──────────────────────────── */
+  .preview-b {
+    background: #080808;
+    perspective: 600px;
+  }
+  .tilt-card {
+    width: 160px;
+    height: 110px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(85,139,139,0.3);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 12px;
+    animation: tilt3d 4s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(85,139,139,0.1);
+  }
+  .tilt-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(85,139,139,0.15) 0%, transparent 60%);
+  }
+  .tilt-card-img {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #1a2a2a 0%, #0d1a1a 100%);
+  }
+  .tilt-card-dot {
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 28px; height: 28px;
+    border: 1.5px solid rgba(85,139,139,0.5);
+    border-radius: 50%;
+  }
+  .tilt-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #558b8b;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+  }
+  .tilt-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f5f5f0;
+    position: relative;
+    z-index: 1;
+  }
+  @keyframes tilt3d {
+    0%   { transform: rotateY(-15deg) rotateX(5deg); }
+    25%  { transform: rotateY(5deg) rotateX(-3deg); }
+    50%  { transform: rotateY(15deg) rotateX(5deg); }
+    75%  { transform: rotateY(-5deg) rotateX(-3deg); }
+    100% { transform: rotateY(-15deg) rotateX(5deg); }
+  }
+  .float-badge {
+    position: absolute;
+    top: 24px; right: 28px;
+    background: rgba(85,139,139,0.15);
+    border: 1px solid rgba(85,139,139,0.3);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 10px;
+    color: #558b8b;
+    animation: floatBadge 3s ease-in-out infinite;
+    backdrop-filter: blur(8px);
+  }
+  @keyframes floatBadge {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .reflection {
+    position: absolute;
+    bottom: 18px;
+    width: 160px; height: 30px;
+    background: linear-gradient(to bottom, rgba(85,139,139,0.08), transparent);
+    filter: blur(4px);
+    border-radius: 50%;
+    animation: tilt3d 4s ease-in-out infinite;
+  }
+
+  /* ────────────────────────────
+     OPTION C — WebGL / GSAP Cinéma
+  ──────────────────────────── */
+  .preview-c {
+    background: #030303;
+    overflow: hidden;
+  }
+  .cinema-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 120%, rgba(85,139,139,0.18) 0%, transparent 70%);
+    animation: breathe 4s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+  .cinema-lines {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.012) 2px,
+      rgba(255,255,255,0.012) 3px
+    );
+  }
+  .cinema-text {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+  }
+  .cinema-word {
+    display: block;
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1;
+    overflow: hidden;
+  }
+  .cinema-word span {
+    display: block;
+    animation: slideReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .cinema-word:nth-child(1) span { animation-delay: 0s; color: #f5f5f0; }
+  .cinema-word:nth-child(2) span { animation-delay: 0.2s; color: #558b8b; font-style: italic; font-weight: 500; }
+  .cinema-word:nth-child(3) span { animation-delay: 0.4s; color: rgba(245,245,240,0.25); font-size: 16px; font-weight: 400; letter-spacing: 4px; text-transform: uppercase; font-style: normal; margin-top: 12px; }
+  @keyframes slideReveal {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .cinema-cursor {
+    position: absolute;
+    width: 8px; height: 8px;
+    background: #558b8b;
+    border-radius: 50%;
+    animation: cursor 6s linear infinite;
+    opacity: 0.7;
+    filter: blur(1px);
+  }
+  @keyframes cursor {
+    0%   { top: 20%; left: 20%; transform: scale(1); opacity: 0.4; }
+    25%  { top: 30%; left: 70%; transform: scale(2); opacity: 0.8; }
+    50%  { top: 70%; left: 60%; transform: scale(0.8); opacity: 0.5; }
+    75%  { top: 60%; left: 25%; transform: scale(1.5); opacity: 0.7; }
+    100% { top: 20%; left: 20%; transform: scale(1); opacity: 0.4; }
+  }
+
+  .recommend {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #0a0a0a;
+    background: #558b8b;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .select-hint {
+    text-align: center;
+    font-size: 13px;
+    color: rgba(245,245,240,0.3);
+    margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Quelle direction pour Photolio ?</h1>
+<p class="subtitle">3 ambiances animées — clique pour sélectionner</p>
+
+<div class="cards">
+
+  <!-- OPTION A -->
+  <div class="card" onclick="toggle(this, 'a')">
+    <div class="check">✓</div>
+    <div class="preview preview-a">
+      <!-- Particles -->
+      <div class="particle" style="width:3px;height:3px;left:15%;animation-duration:5s;animation-delay:0s;"></div>
+      <div class="particle" style="width:2px;height:2px;left:30%;animation-duration:7s;animation-delay:1s;"></div>
+      <div class="particle" style="width:4px;height:4px;left:50%;animation-duration:6s;animation-delay:0.5s;"></div>
+      <div class="particle" style="width:2px;height:2px;left:65%;animation-duration:8s;animation-delay:2s;"></div>
+      <div class="particle" style="width:3px;height:3px;left:80%;animation-duration:5.5s;animation-delay:1.5s;"></div>
+      <div class="particle" style="width:2px;height:2px;left:42%;animation-duration:9s;animation-delay:3s;"></div>
+      <div class="hero-text-a">
+        <div class="big">Vos œuvres.</div>
+        <div class="sub">Scroll pour découvrir ↓</div>
+      </div>
+      <div class="scroll-line"></div>
+    </div>
+    <div class="card-body">
+      <div class="card-label">Option A</div>
+      <div class="card-title">Parallax + Particules</div>
+      <div class="card-desc">Particules flottantes dans le hero, apparitions au scroll (Intersection Observer), effet parallax sur les images. Fluide et moderne sans dépendance lourde.</div>
+      <div class="tags">
+        <span class="tag accent">Léger</span>
+        <span class="tag">CSS pur + JS natif</span>
+        <span class="tag">Scroll-driven</span>
+        <span class="tag">Performant</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="card" onclick="toggle(this, 'b')">
+    <div class="check">✓</div>
+    <div class="preview preview-b">
+      <div class="tilt-card">
+        <div class="tilt-card-img"></div>
+        <div class="tilt-card-dot"></div>
+        <div class="tilt-label">Portfolio</div>
+        <div class="tilt-name">Photographe</div>
+      </div>
+      <div class="float-badge">✓ Portfolio actif</div>
+      <div class="reflection"></div>
+    </div>
+    <div class="card-body">
+      <div class="card-label">Option B</div>
+      <div class="card-title">3D Tilt + Glassmorphism Profond</div>
+      <div class="card-desc">Cards qui suivent la souris en 3D (CSS perspective + JS mouse tracking), badges flottants, reflets lumineux, profondeur par couches. Wow factor immédiat.</div>
+      <div class="tags">
+        <span class="tag accent">Effet WOW</span>
+        <span class="tag">CSS 3D</span>
+        <span class="tag">Mouse tracking</span>
+        <span class="tag">Sans lib</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="card" onclick="toggle(this, 'c')">
+    <div class="check">✓</div>
+    <div class="preview preview-c">
+      <div class="cinema-bg"></div>
+      <div class="cinema-lines"></div>
+      <div class="cinema-cursor"></div>
+      <div class="cinema-text">
+        <div class="cinema-word"><span>Vos œuvres</span></div>
+        <div class="cinema-word"><span>Votre espace</span></div>
+        <div class="cinema-word"><span>Photolio · 2026</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="recommend">Recommandé</div>
+      <div class="card-label">Option C</div>
+      <div class="card-title">Cinématique — GSAP ScrollTrigger</div>
+      <div class="card-desc">Révélations de texte au scroll, sections épinglées, transitions de page fluides, halo lumineux animé. L'approche la plus "2026" — celle des grands studios créatifs.</div>
+      <div class="tags">
+        <span class="tag accent">Premium</span>
+        <span class="tag">GSAP</span>
+        <span class="tag">Text reveal</span>
+        <span class="tag">Scroll cinéma</span>
+        <span class="tag">+~50KB</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="select-hint">Tu peux en choisir plusieurs si tu veux combiner des éléments</p>
+
+<script>
+  const selected = new Set();
+  function toggle(card, choice) {
+    if (selected.has(choice)) {
+      selected.delete(choice);
+      card.classList.remove('selected');
+    } else {
+      selected.add(choice);
+      card.classList.add('selected');
+    }
+    // Notify parent via postMessage if in iframe, or just store
+    if (window.__brainstorm) {
+      window.__brainstorm.select(choice, card.querySelector('.card-title').textContent);
+    }
+  }
+</script>
+</body>
+</html>
